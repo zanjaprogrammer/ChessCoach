@@ -11,6 +11,7 @@ import { Chess } from 'chess.js';
 import { stockfishEngine } from '@/lib/stockfish';
 import { aiExplainer } from '@/lib/aiExplainer';
 import { PlayerProfile, GameData } from '@/lib/chessApi';
+import { recognizeOpening, OpeningInfo } from '@/lib/openings';
 
 export interface MoveAnalysis {
   moveNumber: number;
@@ -23,6 +24,8 @@ export interface MoveAnalysis {
   explanation?: string;
   expectedPointsLoss?: number;
   winProbability?: number;
+  opening?: OpeningInfo;
+  isTheoryMove?: boolean;
 }
 
 export default function ChessAnalyzer() {
@@ -82,6 +85,7 @@ export default function ChessAnalyzer() {
       const history = game.history();
       const tempGame = new Chess();
       let previousEval = 0;
+      let currentOpening: OpeningInfo | null = null;
       
       // Analyze each move
       for (let i = 0; i < history.length; i++) {
@@ -90,6 +94,15 @@ export default function ChessAnalyzer() {
         
         // Make the move
         tempGame.move(move);
+        
+        // Check for opening recognition
+        const opening = recognizeOpening(tempGame.fen());
+        if (opening) {
+          currentOpening = opening;
+        }
+        
+        // Determine if this is a theory move (within first 15 moves and opening recognized)
+        const isTheoryMove = i < 30 && currentOpening !== null;
         
         // Get engine analysis (depth 14 like Chessigma for balance)
         console.log(`Analyzing move ${i + 1}/${history.length}: ${move}`);
@@ -133,7 +146,9 @@ export default function ChessAnalyzer() {
           classification: explanation.classification,
           explanation: explanation.explanation,
           expectedPointsLoss: explanation.expectedPointsLoss,
-          winProbability: explanation.winProbability
+          winProbability: explanation.winProbability,
+          opening: currentOpening || undefined,
+          isTheoryMove
         });
         
         previousEval = analysis.evaluation;

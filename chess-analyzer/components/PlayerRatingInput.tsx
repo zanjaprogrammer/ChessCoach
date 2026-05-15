@@ -150,7 +150,11 @@ export default function PlayerRatingInput({ onProfileLoad, onGameSelect }: Playe
         const parsed = JSON.parse(cachedProfile);
         setProfile(parsed);
         setUsername(cachedUsername);
-        onProfileLoad(parsed);
+        
+        // Use setTimeout to defer the state update to the next tick
+        setTimeout(() => {
+          onProfileLoad(parsed);
+        }, 0);
         
         if (cachedGames) {
           const parsedGames = JSON.parse(cachedGames);
@@ -160,7 +164,7 @@ export default function PlayerRatingInput({ onProfileLoad, onGameSelect }: Playe
         console.error('Error loading cached data:', err);
       }
     }
-  }, []);
+  }, [onProfileLoad]);
 
   return (
     <div className="bg-[#262421] rounded-lg p-4">

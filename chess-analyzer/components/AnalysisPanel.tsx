@@ -1,6 +1,7 @@
 'use client';
 
 import { MoveAnalysis } from './ChessAnalyzer';
+import { getLichessOpeningUrl, getChessComOpeningUrl } from '@/lib/openings';
 
 interface AnalysisPanelProps {
   analysis: MoveAnalysis[];
